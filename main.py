@@ -1,8 +1,7 @@
 import os
-import asyncio
 from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
-import edge_tts
+from gtts import gTTS
 from moviepy.editor import AudioFileClip, ImageClip
 import numpy as np
 
@@ -22,28 +21,24 @@ def verify_token(authorization: str = Header(None)):
     if token != API_SECRET_KEY:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-async def generate_edge_voice(text, output_path):
-    # Fixed Connection Settings for Edge TTS
-    communicate = edge_tts.Communicate(text, "hi-IN-MadhurNeural", rate="+10%")
-    await communicate.save(output_path)
-
 @app.post("/render-video")
 async def render_video(request: VideoRequest, authorized: str = Depends(verify_token)):
     try:
-        full_script = f"{request.intro_script}. {request.body_script}"
+        # Ekdum fast aur conversational spacing ke liye dots jode
+        full_script = f"{request.intro_script}... {request.body_script}"
         
-        # Script cleaning
+        # Clean unwanted characters
         full_script = full_script.replace("{", "").replace("}", "").replace('"', '').replace("'", "")
         
         audio_path = "output_voice.mp3"
         video_path = "final_output.mp4"
         
-        # Running async voice function
-        loop = asyncio.get_event_loop()
-        await generate_edge_voice(full_script, audio_path)
+        # Unstoppable Lifetime Free Engine
+        tts = gTTS(text=full_script, lang='hi', slow=False)
+        tts.save(audio_path)
         
         if not os.path.exists(audio_path) or os.path.getsize(audio_path) == 0:
-            raise HTTPException(status_code=500, detail="Desi Voice generation failed")
+            raise HTTPException(status_code=500, detail="Audio creation failed")
             
         audio_clip = AudioFileClip(audio_path)
         duration = audio_clip.duration
@@ -55,6 +50,6 @@ async def render_video(request: VideoRequest, authorized: str = Depends(verify_t
         audio_clip.close()
         final_video.close()
         
-        return {"status": "success", "video_url": "Desi Video Generated Successfully"}
+        return {"status": "success", "video_url": "Lifetime Autopilot Video Generated Successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
