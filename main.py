@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
-from gtts import gTTS
+import pyttiktok
 from moviepy.editor import AudioFileClip, ImageClip
 import numpy as np
 
@@ -28,10 +28,13 @@ async def render_video(request: VideoRequest, authorized: str = Depends(verify_t
         audio_path = "output_voice.mp3"
         video_path = "final_output.mp4"
         
-        # Using stable Google TTS engine (Hindi)
-        tts = gTTS(text=full_script, lang='hi')
-        tts.save(audio_path)
+        # 100% Free & Super Natural Human-like Voice
+        # 'en_us_006' is the famous crispy story-teller voice
+        pyttiktok.save_audio(full_script, 'en_us_006', audio_path)
         
+        if not os.path.exists(audio_path):
+            raise HTTPException(status_code=500, detail="Voice generation failed")
+            
         audio_clip = AudioFileClip(audio_path)
         duration = audio_clip.duration
         
@@ -42,6 +45,6 @@ async def render_video(request: VideoRequest, authorized: str = Depends(verify_t
         audio_clip.close()
         final_video.close()
         
-        return {"status": "success", "video_url": "Video Generated Successfully"}
+        return {"status": "success", "video_url": "Super Natural Video Generated Successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
