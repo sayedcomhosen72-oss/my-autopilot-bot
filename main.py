@@ -1,4 +1,5 @@
 import os
+import asyncio
 from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
 import edge_tts
@@ -22,14 +23,15 @@ def verify_token(authorization: str = Header(None)):
         raise HTTPException(status_code=403, detail="Forbidden")
 
 @app.post("/render-video")
-async def render_video(request: VideoRequest, authorized: os = Depends(verify_token)):
+async def render_video(request: VideoRequest, authorized: str = Depends(verify_token)):
     try:
         full_script = f"{request.intro_script} {request.body_script}"
         audio_path = "output_voice.mp3"
         video_path = "final_output.mp4"
         
+        # New updated method for edge-tts save
         communicate = edge_tts.Communicate(full_script, "hi-IN-MadhurNeural")
-        communicate.save_sync(audio_path)
+        await communicate.save(audio_path)
         
         audio_clip = AudioFileClip(audio_path)
         duration = audio_clip.duration
@@ -41,6 +43,6 @@ async def render_video(request: VideoRequest, authorized: os = Depends(verify_to
         audio_clip.close()
         final_video.close()
         
-        return {"status": "success", "video_url": "Video Generated"}
+        return {"status": "success", "video_url": "Video Generated Successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
