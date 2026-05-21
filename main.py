@@ -1,8 +1,7 @@
 import os
-import asyncio
 from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
-import edge_tts
+from gtts import gTTS
 from moviepy.editor import AudioFileClip, ImageClip
 import numpy as np
 
@@ -29,9 +28,9 @@ async def render_video(request: VideoRequest, authorized: str = Depends(verify_t
         audio_path = "output_voice.mp3"
         video_path = "final_output.mp4"
         
-        # New updated method for edge-tts save
-        communicate = edge_tts.Communicate(full_script, "hi-IN-MadhurNeural")
-        await communicate.save(audio_path)
+        # Using stable Google TTS engine (Hindi)
+        tts = gTTS(text=full_script, lang='hi')
+        tts.save(audio_path)
         
         audio_clip = AudioFileClip(audio_path)
         duration = audio_clip.duration
