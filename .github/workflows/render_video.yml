@@ -22,10 +22,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Install Correct Python Libraries
+      - name: Install Correct Python Libraries & Version Lock
         run: |
           python -m pip install --upgrade pip
-          pip install gTTS numpy requests moviepy==1.0.3
+          pip install gTTS numpy requests imageio-ffmpeg
+          pip install "Pillow<10.0.0"
+          pip install moviepy==1.0.3
 
       - name: Run Dynamic Video Script
         env:
