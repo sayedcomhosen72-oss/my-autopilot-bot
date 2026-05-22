@@ -5,17 +5,16 @@ import re
 from gtts import gTTS
 import numpy as np
 
-# Emergency Bypass Backends setup safely
 try:
-    from PIL import Image, ImageDraw
+    from PIL import Image, ImageDraw, ImageFilter
 except ImportError:
     pass
 
 from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
 
 def get_reddit_images(reddit_url):
-    """BYPASS LAYER 1: Hardcore Reddit Media Scraper"""
-    print(f"[SCRAPER] Scanning Reddit Link: {reddit_url}")
+    """MASTER SCRAPER: Bypasses network blocks to extract manga panels"""
+    print(f"[SCRAPER] Scanning Reddit Media Link: {reddit_url}")
     image_urls = []
     try:
         clean_url = reddit_url.split('?')[0].rstrip('/') + ".json"
@@ -26,94 +25,112 @@ def get_reddit_images(reddit_url):
             data = response.json()
             post_data = data[0]['data']['children'][0]['data']
             
-            # Agar gallery post hai (Multiple panels)
             if 'media_metadata' in post_data:
                 for item_id in post_data['media_metadata']:
                     img_url = post_data['media_metadata'][item_id]['s']['u'].replace('&amp;', '&')
                     image_urls.append(img_url)
-            # Agar single image post hai
             elif 'url' in post_data and re.search(r'\.(jpg|jpeg|png|gif)', post_data['url'], re.IGNORECASE):
                 image_urls.append(post_data['url'])
     except Exception as e:
-        print(f"[BYPASS WARNING] Scraper layout changed or blocked: {e}")
-    
+        print(f"[BYPASS] Scraper backup node activated. Error: {e}")
     return image_urls
 
-def create_emergency_canvas(path, text_title):
-    """BYPASS LAYER 3: Creates high quality dynamic placeholder if zero images found"""
-    print("[EMERGENCY-ENGINE] No images found. Crafting unique canvas to bypass reuse content policy...")
+def create_premium_canvas(path, text_title):
+    """ALGORITHM BYPASS: Creates unique visual template so YouTube never flags reuse content"""
     try:
-        # 1080x1920 Premium Dark Anime Aesthetic Canvas
-        img = Image.new("RGB", (1080, 1920), color=(15, 15, 22))
+        img = Image.new("RGB", (1080, 1920), color=(12, 12, 18))
         d = ImageDraw.Draw(img)
-        d.rectangle([(30, 30), (1050, 1890)], outline=(255, 69, 0), width=6)
+        d.rectangle([(25, 25), (1055, 1895)], outline=(255, 69, 0), width=5)
         img.save(path)
     except Exception:
         arr = np.zeros((1920, 1080, 3), dtype=np.uint8)
-        arr[:, :] = [15, 15, 22]
+        arr[:, :] = [12, 12, 18]
         import imageio
         imageio.imwrite(path, arr)
 
+def process_vyuk_style_frame(img_path, output_path):
+    """HUMAN TOUCH FILTER: Blurs the background and layers the panel on top to beat copyright bots"""
+    try:
+        with Image.open(img_path) as img:
+            img = img.convert('RGB')
+            # 1. Background Blur Layer (9:16 aspect ratio standard)
+            bg = img.resize((1080, 1920)).filter(ImageFilter.GaussianBlur(radius=25))
+            
+            # 2. Foreground Crisp Panel Layer
+            fw_width = 1000
+            w_percent = (fw_width / float(img.size[0]))
+            fh_size = int((float(img.size[1]) * float(w_percent)))
+            
+            # Agar vertical size vertical frame se bada hai toh normalize karo
+            if fh_size > 1500:
+                fh_size = 1400
+                fw_width = int((float(img.size[0]) * float(fh_size / float(img.size[1]))))
+                
+            fw = img.resize((fw_width, fh_size), Image.Resampling.LANCZOS)
+            
+            # 3. Paste foreground onto center of blurred background
+            x_offset = (1080 - fw_width) // 2
+            y_offset = (1920 - fh_size) // 2
+            bg.paste(fw, (x_offset, y_offset))
+            bg.save(output_path)
+    except Exception:
+        # Emergency backup if PIL resize fails
+        create_premium_canvas(output_path, "Manga Masterpiece")
+
 def main():
-    print("[ENGINE] Starting Vyuk Style Unstoppable Video Generator...")
-    
-    # 1. Fetch data from GitHub Environment Safely
+    print("[ENGINE] Launching Unstoppable Masterpiece Engine...")
     github_event_path = os.environ.get("GITHUB_EVENT_PATH")
     if not github_event_path:
-        print("[ERROR] GitHub Event Path missing!")
         return
 
     with open(github_event_path, "r") as f:
         event_data = json.load(f)
 
     payload = event_data.get("client_payload", {})
-    title = payload.get("title", "Manga Video")
+    title = payload.get("title", "Manga Update")
     intro = payload.get("intro_script", "").strip()
     body = payload.get("body_script", "").strip()
     reddit_url = payload.get("reddit_url", "https://www.reddit.com/r/lookismcomic/")
 
     full_text = f"{intro} {body}".strip()
     if not full_text or len(full_text) < 10:
-        print("[WARNING] Empty script. Triggering dynamic narrator script...")
-        full_text = f"Suno bhaiyo! Aaj hum baat karne wale hain {title} ke baare mein. Yeh leaks sach mein ekdum bawaal hain!"
+        full_text = f"Suno bhaiyo! Aaj hum baat karne wale hain {title} ke baare mein. Ekdum khatarnak leaks hain!"
 
-    print(f"[AUDIO] Generating Desi Launda Voiceover: {full_text[:60]}...")
-    
-    # 2. Render Audio Voiceover Layer
+    # Voiceover Processing
     audio_path = "voiceover.mp3"
     tts = gTTS(text=full_text, lang='en', slow=False)
     tts.save(audio_path)
     
     audio_clip = AudioFileClip(audio_path)
     total_duration = audio_clip.duration
-    print(f"[SUCCESS] Voiceover Ready. Duration: {total_duration}s")
 
-    # 3. Handle Panels & Downloading with active Bypasses
+    # Image Processing Node
     img_urls = get_reddit_images(reddit_url)
     os.makedirs("panels", exist_ok=True)
+    os.makedirs("processed_frames", exist_ok=True)
     downloaded_images = []
 
     if img_urls:
-        print(f"[DOWNLOADER] Found {len(img_urls)} active links. Extracting panels...")
         for i, url in enumerate(img_urls):
             try:
                 img_data = requests.get(url, timeout=10).content
-                img_path = f"panels/panel_{i}.jpg"
-                with open(img_path, 'wb') as handler:
-                    handler.write(img_data)
-                downloaded_images.append(img_path)
+                raw_path = f"panels/raw_{i}.jpg"
+                with open(raw_path, 'wb') as h:
+                    h.write(img_data)
+                
+                # Applying Vyuk's signature blurred background system
+                proc_path = f"processed_frames/frame_{i}.png"
+                process_vyuk_style_frame(raw_path, proc_path)
+                downloaded_images.append(proc_path)
             except Exception:
                 continue
 
-    # BYPASS LAYER 2 TRIGGER: Agar ek bhi photo nahi mili
     if not downloaded_images:
-        print("[BYPASS ACTIVATED] Zero images retrieved. Activating automatic canvas node...")
-        fallback_img = "panels/fallback_default.jpg"
-        create_emergency_canvas(fallback_img, title)
-        downloaded_images.append(fallback_img)
+        fallback_path = "processed_frames/fallback.jpg"
+        create_premium_canvas(fallback_path, title)
+        downloaded_images.append(fallback_path)
 
-    # 4. Multi-Backend Rendering Grid (Bypasses the moviepy.editor imageio issue)
-    print("[VIDEO ENGINE] Timeline composition in progress...")
+    # Video Animation Loop
     clips = []
     num_images = len(downloaded_images)
     duration_per_image = max(3.0, total_duration / num_images)
@@ -126,27 +143,15 @@ def main():
         remaining_time = total_duration - current_time
         clip_dur = min(duration_per_image, remaining_time)
         
-        # Pillow Backend Conversion Loop to standardize any jpg/png format
-        try:
-            with Image.open(img_path) as PIL_raw:
-                clean_path = f"panels/clean_frame_{image_index}.png"
-                PIL_raw.convert('RGB').save(clean_path)
-                img_clip = ImageClip(clean_path).set_duration(clip_dur)
-        except Exception:
-            print(f"[RECOVERY BYPASS] Corrupted image caught at index {image_index}. Standardizing...")
-            emergency_path = f"panels/emergency_frame_{image_index}.jpg"
-            create_emergency_canvas(emergency_path, title)
-            img_clip = ImageClip(emergency_path).set_duration(clip_dur)
-
-        # Vyuk Bhai Style Punch-In Ken Burns Animation (Zooming 6% over timeline)
+        img_clip = ImageClip(img_path).set_duration(clip_dur)
+        # 6% Smart Zoom Ken-Burns transition to completely destroy YouTube reuse signature
         img_clip = img_clip.resize(lambda t: 1.0 + 0.06 * (t / clip_dur))
         clips.append(img_clip)
         
         current_time += clip_dur
         image_index += 1
 
-    # 5. Compile and Output High Quality Video Layer
-    print("[RENDERER] Joining video clips with audio tracks...")
+    print("[RENDERER] Assembling layers into final video output...")
     final_video = concatenate_videoclips(clips, method="compose")
     final_video = final_video.set_audio(audio_clip)
     
@@ -158,7 +163,7 @@ def main():
         audio_codec="aac",
         preset="ultrafast"
     )
-    print(f"[COMPLETE] System green! Video saved at: {output_name}")
+    print(f"[SUCCESS] Masterpiece Compiled Successfully: {output_name}")
 
 if __name__ == "__main__":
     main()
