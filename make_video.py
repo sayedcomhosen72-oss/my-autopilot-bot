@@ -53,7 +53,7 @@ def process_anti_copyright_frame(img_path, output_path):
         imageio.imwrite(output_path, arr)
 
 def main():
-    print("[ENGINE] Launching Desi Otaku Brain Video Masterpiece...")
+    print("[ENGINE] Launching Video Masterpiece...")
     github_event_path = os.environ.get("GITHUB_EVENT_PATH")
     if not github_event_path: return
 
@@ -70,7 +70,7 @@ def main():
     clean_voiceover_text = re.sub(r'\[SOUND_EFFECT_\w+\]', '', raw_script)
 
     if len(clean_voiceover_text) < 10:
-        clean_voiceover_text = f"Aur mere jigar ke chhallon! Aaj hamara otaku dimaag baat karega {title} ke baare mein. Ekdum bawaal leaks hain bhaaio!"
+        clean_voiceover_text = f"Aaj hamara dimaag baat karega {title} ke baare mein. Ekdum bawaal leaks hain!"
 
     audio_path = "voiceover.mp3"
     tts = gTTS(text=clean_voiceover_text, lang='en', slow=False)
@@ -79,7 +79,6 @@ def main():
     main_audio = AudioFileClip(audio_path)
     total_duration = main_audio.duration
 
-    # Vine boom setup for moj syncing
     sfx_path = "vine_boom.mp3"
     if not os.path.exists(sfx_path):
         os.system("curl -sL https://www.myinstants.com/media/sounds/vine-boom.mp3 -o vine_boom.mp3")
@@ -97,7 +96,6 @@ def main():
                 continue
 
     final_audio = CompositeAudioClip(audio_targets)
-
     img_urls = get_reddit_images(reddit_url)
     os.makedirs("processed_frames", exist_ok=True)
     downloaded_images = []
@@ -108,7 +106,6 @@ def main():
                 img_data = requests.get(url, timeout=10).content
                 raw_p = f"processed_frames/raw_{i}.jpg"
                 with open(raw_p, 'wb') as h: h.write(img_data)
-                
                 proc_p = f"processed_frames/frame_{i}.png"
                 process_anti_copyright_frame(raw_p, proc_p)
                 downloaded_images.append(proc_p)
@@ -125,7 +122,6 @@ def main():
     clips = []
     num_images = len(downloaded_images)
     duration_per_image = max(3.0, total_duration / num_images)
-    
     current_time = 0
     image_index = 0
     
@@ -133,20 +129,19 @@ def main():
         img_path = downloaded_images[image_index % num_images]
         remaining_time = total_duration - current_time
         clip_dur = min(duration_per_image, remaining_time)
-        
         img_clip = ImageClip(img_path).set_duration(clip_dur)
         img_clip = img_clip.resize(lambda t: 1.0 + 0.07 * (t / clip_dur))
         clips.append(img_clip)
-        
         current_time += clip_dur
         image_index += 1
 
     final_video = concatenate_videoclips(clips, method="compose")
     final_video = final_video.set_audio(final_audio)
     
-    output_name = "final_output.mp4"
+    # FINAL RENDER: OUTPUT NAMED AS output.mp4
+    output_name = "output.mp4"
     final_video.write_videofile(output_name, fps=24, codec="libx264", audio_codec="aac", preset="ultrafast")
-    print(f"[COMPLETE] Masterpiece Rendered Successfully: {output_name}")
+    print(f"[COMPLETE] Masterpiece Rendered: {output_name}")
 
 if __name__ == "__main__":
     main()
