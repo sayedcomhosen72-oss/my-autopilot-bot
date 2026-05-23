@@ -36,18 +36,20 @@ jobs:
           BODY: ${{ github.event.client_payload.body_script }}
         run: python make_video.py
 
-      - name: Upload and Get Link
+      - name: Upload Video and Save Link
         run: |
           if [ -f "output.mp4" ]; then
-            curl -F "file=@output.mp4" https://file.io > response.txt
-            LINK=$(grep -o '"link":"[^"]*"' response.txt | cut -d'"' -f4)
-            echo "DOWNLOAD_URL=$LINK" >> $GITHUB_ENV
-            echo "URL found: $LINK"
+            # File upload karke direct link variable mein daal rahe hain
+            LINK=$(curl -F "file=@output.mp4" https://file.io | grep -o '"link":"[^"]*"' | cut -d'"' -f4)
+            echo "$LINK" > link.txt
+            echo "URL Saved: $LINK"
           else
             echo "Error: output.mp4 nahi mili!"
             exit 1
           fi
 
-      - name: Final Output
-        run: |
-          echo "DOWNLOAD_URL: $DOWNLOAD_URL"
+      - name: Upload Link File as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-url
+          path: link.txt
