@@ -39,10 +39,7 @@ jobs:
       - name: Upload and Get Link
         run: |
           if [ -f "output.mp4" ]; then
-            # Upload karke response ko 'response.txt' mein save kar rahe hain
             curl -F "file=@output.mp4" https://file.io > response.txt
-            # Link nikalne ka simple tarika
-            cat response.txt
             LINK=$(grep -o '"link":"[^"]*"' response.txt | cut -d'"' -f4)
             echo "DOWNLOAD_URL=$LINK" >> $GITHUB_ENV
             echo "URL found: $LINK"
@@ -52,4 +49,5 @@ jobs:
           fi
 
       - name: Final Output
-        run: echo "download_url: $DOWNLOAD_URL"
+        run: |
+          echo "DOWNLOAD_URL: $DOWNLOAD_URL"
