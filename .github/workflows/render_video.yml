@@ -36,3 +36,9 @@ jobs:
           BODY: ${{ github.event.client_payload.body_script }}
         run: |
           python make_video.py
+
+      - name: Upload Video Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-video
+          path: output.mp4
