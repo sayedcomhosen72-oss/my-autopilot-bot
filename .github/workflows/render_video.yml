@@ -36,20 +36,17 @@ jobs:
           BODY: ${{ github.event.client_payload.body_script }}
         run: python make_video.py
 
-      - name: Upload Video and Save Link
+      - name: Upload Video and Print Raw Link
         run: |
           if [ -f "output.mp4" ]; then
-            # File upload karke direct link variable mein daal rahe hain
+            # Video ko upload karke direct download link nikal rahe hain
             LINK=$(curl -F "file=@output.mp4" https://file.io | grep -o '"link":"[^"]*"' | cut -d'"' -f4)
-            echo "$LINK" > link.txt
-            echo "URL Saved: $LINK"
+            
+            # Is pure code ka sabse zaroori hissa: Link ko ekदम saaf tareeqe se print karna
+            echo "========================================="
+            echo "MY_FINAL_VIDEO_URL: $LINK"
+            echo "========================================="
           else
             echo "Error: output.mp4 nahi mili!"
             exit 1
           fi
-
-      - name: Upload Link File as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: video-url
-          path: link.txt
