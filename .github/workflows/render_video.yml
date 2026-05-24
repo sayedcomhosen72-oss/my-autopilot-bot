@@ -42,7 +42,7 @@ jobs:
             # Video ko upload karke direct download link nikal rahe hain
             LINK=$(curl -F "file=@output.mp4" https://file.io | grep -o '"link":"[^"]*"' | cut -d'"' -f4)
             
-            # Is pure code ka sabse zaroori hissa: Link ko ekदम saaf tareeqe se print karna
+            # Is pure code ka sabse zaroori hissa: Link ko ekdam saaf tareeqe se print karna
             echo "========================================="
             echo "MY_FINAL_VIDEO_URL: $LINK"
             echo "========================================="
