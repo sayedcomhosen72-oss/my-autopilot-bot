@@ -7,6 +7,9 @@ on:
 jobs:
   build-and-render:
     runs-on: ubuntu-latest
+    # Yeh niche wali do lines GitHub ko push aur release karne ki permission dengi
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository Code
@@ -36,19 +39,12 @@ jobs:
           BODY: ${{ github.event.client_payload.body_script }}
         run: python make_video.py
 
-      - name: Push Video to Separate Branch (Direct MP4 URL)
+      - name: Create Direct Video Release
         if: success()
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Nayi branch create ya switch karega jiska naam video-assets hai
-          git checkout -b video-assets || git checkout video-assets
-          
-          # Video file ko rename/copy karega safe side ke liye
-          cp output.mp4 video.mp4
-          
-          # GitHub branch par commit karke force push karega
-          git add video.mp4
-          git commit -m "Update rendered video: ${{ github.event.client_payload.title }}"
-          git push origin video-assets --force
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-video
+          name: Latest Rendered Video
+          files: output.mp4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
